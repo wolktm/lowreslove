@@ -6,9 +6,17 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
-  "keywords": ["retro", "image", "converter", "pixel-art"],
+  "homepage": "https://wolktm.github.io/lowreslove",
+  "keywords": [
+    "retro",
+    "image",
+    "converter",
+    "pixel-art"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -18,5 +26,8 @@
     "vite": "^7.2.7",
     "vite-plugin-pwa": "^1.2.0",
     "workbox-window": "^7.4.0"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.3.0"
   }
 }

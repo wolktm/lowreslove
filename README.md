@@ -59,11 +59,44 @@ npm run preview
 
 ## Deployment
 
-This app can be deployed to any static hosting service:
-- Vercel
-- Netlify
-- GitHub Pages
-- Cloudflare Pages
+### GitHub Pages (Recommended)
+
+1. **Update the repository name** in [package.json](package.json:13):
+   ```json
+   "homepage": "https://YOUR_USERNAME.github.io/lowreslove"
+   ```
+   Replace `YOUR_USERNAME` with your GitHub username.
+
+2. **Initialize git repository** (if not already done):
+   ```bash
+   git init
+   git add .
+   git commit -m "Initial commit"
+   ```
+
+3. **Create a GitHub repository** named `lowreslove` and push your code:
+   ```bash
+   git remote add origin https://github.com/YOUR_USERNAME/lowreslove.git
+   git branch -M main
+   git push -u origin main
+   ```
+
+4. **Deploy to GitHub Pages**:
+   ```bash
+   npm run deploy
+   ```
+
+5. **Enable GitHub Pages** in your repository settings:
+   - Go to Settings > Pages
+   - Source should be set to `gh-pages` branch
+   - Your app will be live at `https://YOUR_USERNAME.github.io/lowreslove`
+
+### Other Deployment Options
+
+This app can also be deployed to:
+- **Vercel**: `vercel --prod`
+- **Netlify**: Drag and drop the `dist` folder
+- **Cloudflare Pages**: Connect your GitHub repository
 
 The PWA manifest allows it to be installed on Android devices as a standalone app.
 
