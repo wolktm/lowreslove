@@ -1,7 +1,7 @@
 export default function PaletteSelector({ selectedPalette, onSelectPalette, palettes }) {
   return (
     <div className="palette-selector">
-      <h2 className="palette-title">SELECT PALETTE</h2>
+      {/* <h2 className="palette-title">SELECT PALETTE</h2> */}
       <div className="palette-grid">
         {Object.keys(palettes).map((paletteName) => (
           <div

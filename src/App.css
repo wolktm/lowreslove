@@ -57,20 +57,20 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1rem;
   overflow: hidden;
   min-height: 0;
 }
 
 /* Preview Section */
 .preview-section {
-  flex-shrink: 0;
+  /* flex: 1; */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 40vh;
-  max-height: 50vh;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .select-photo-button {
@@ -112,17 +112,20 @@ body {
 }
 
 .preview-container {
-  width: 100%;
-  max-width: 800px;
+  width: fit-content;
+  max-width: 100%;
+  height: fit-content;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  justify-content: center;
+  gap: 0.5rem;
   cursor: pointer;
-  padding: 1rem;
-  border: 3px solid var(--border-color);
+  padding: 0.1rem;
+  /* border: 3px solid var(--border-color); */
   background-color: #001100;
   transition: all 0.2s;
+  overflow: hidden;
 }
 
 .preview-container:hover {
@@ -132,7 +135,10 @@ body {
 
 .preview-canvas {
   max-width: 100%;
+  max-height: 100%;
+  width: auto;
   height: auto;
+  object-fit: contain;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
   border: 2px solid var(--secondary-color);
@@ -182,8 +188,8 @@ body {
   border: 3px solid var(--border-color);
   background-color: #001100;
   overflow-y: auto;
-  flex: 1;
-  min-height: 0;
+  flex-shrink: 0;
+  max-height: 35vh;
 }
 
 .palette-title {
@@ -268,5 +274,23 @@ body {
 
   .select-photo-button {
     height: 250px;
+  }
+
+  .palette-selector {
+    max-height: 30vh;
+  }
+}
+
+@media (min-width: 769px) {
+  .app-header {
+    margin-bottom: 1rem;
+  }
+
+  .app-content {
+    gap: 0.75rem;
+  }
+
+  .palette-selector {
+    max-height: 30vh;
   }
 }

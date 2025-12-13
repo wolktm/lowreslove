@@ -119,7 +119,7 @@ function App() {
               ) : (
                 <>
                   <canvas ref={canvasRef} className="preview-canvas" />
-                  <div className="export-hint">TAP TO EXPORT</div>
+                  {/* <div className="export-hint">TAP TO EXPORT</div> */}
                 </>
               )}
             </div>
