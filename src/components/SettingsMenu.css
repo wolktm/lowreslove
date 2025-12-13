@@ -20,6 +20,7 @@
   align-items: center;
   justify-content: center;
   font-family: 'Courier New', monospace;
+  margin: 22px;
 }
 
 .settings-button:hover {
