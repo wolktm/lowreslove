@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import PaletteSelector from './components/PaletteSelector';
+import SettingsMenu from './components/SettingsMenu';
 import { processImage, exportImage, generatePaletteFromImage, PALETTES } from './utils/imageProcessor';
 import './App.css';
 
@@ -9,6 +10,12 @@ function App() {
   const [selectedPalette, setSelectedPalette] = useState('CGA');
   const [allPalettes, setAllPalettes] = useState(PALETTES);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [adjustments, setAdjustments] = useState({
+    exposure: 0,
+    contrast: 0,
+    chrominance: 0,
+    dithering: 0
+  });
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -37,18 +44,25 @@ function App() {
     setSelectedPalette(paletteName);
   };
 
+  const handleAdjustmentChange = (adjustmentType, value) => {
+    setAdjustments(prev => ({
+      ...prev,
+      [adjustmentType]: value
+    }));
+  };
+
   const handleExport = () => {
     if (processedCanvas) {
       exportImage(processedCanvas);
     }
   };
 
-  // Process image when image or palette changes
+  // Process image when image, palette, or adjustments change
   useEffect(() => {
     if (selectedImage && selectedPalette && allPalettes[selectedPalette]) {
       setIsProcessing(true);
       const palette = allPalettes[selectedPalette];
-      processImage(selectedImage, 256, 128, palette)
+      processImage(selectedImage, 256, 128, palette, adjustments)
         .then((result) => {
           setProcessedCanvas(result.canvas);
           setIsProcessing(false);
@@ -58,7 +72,7 @@ function App() {
           setIsProcessing(false);
         });
     }
-  }, [selectedImage, selectedPalette, allPalettes]);
+  }, [selectedImage, selectedPalette, allPalettes, adjustments]);
 
   // Draw canvas to display
   useEffect(() => {
@@ -72,6 +86,11 @@ function App() {
 
   return (
     <div className="app">
+      <SettingsMenu
+        adjustments={adjustments}
+        onAdjustmentChange={handleAdjustmentChange}
+      />
+
       <header className="app-header">
         <h1 className="app-title">LOWRESLOVE</h1>
         <p className="app-subtitle">RETRO IMAGE CONVERTER</p>

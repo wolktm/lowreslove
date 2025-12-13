@@ -55,6 +55,14 @@ export const PALETTES = {
   'Inferno': [
     '#FFFF99', '#FFCC66', '#FF9966', '#CC3333',
     '#991133', '#660033', '#330066', '#000033'
+  ],
+  'Grayscale': [
+    '#000000', '#242424', '#484848', '#6D6D6D',
+    '#919191', '#B6B6B6', '#DADADA', '#FFFFFF'
+  ],
+  'Cyanotype': [
+    '#001219', '#005F73', '#0A9396', '#94D2BD',
+    '#E9D8A6', '#EE9B00', '#CA6702', '#BB3E03'
   ]
 };
 
@@ -216,6 +224,79 @@ export async function generatePaletteFromImage(imageFile) {
   });
 }
 
+// Apply adjustments to pixel
+function applyAdjustments(r, g, b, adjustments) {
+  // Apply exposure (-10 to +10, maps to -50 to +50)
+  const exposureAmount = adjustments.exposure * 5;
+  r += exposureAmount;
+  g += exposureAmount;
+  b += exposureAmount;
+
+  // Apply contrast (-10 to +10)
+  const contrastFactor = (adjustments.contrast + 10) / 10;
+  r = ((r - 128) * contrastFactor) + 128;
+  g = ((g - 128) * contrastFactor) + 128;
+  b = ((b - 128) * contrastFactor) + 128;
+
+  // Apply chrominance (saturation) (-10 to +10)
+  const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+  const saturationFactor = (adjustments.chrominance + 10) / 10;
+  r = gray + (r - gray) * saturationFactor;
+  g = gray + (g - gray) * saturationFactor;
+  b = gray + (b - gray) * saturationFactor;
+
+  // Clamp values
+  r = Math.max(0, Math.min(255, r));
+  g = Math.max(0, Math.min(255, g));
+  b = Math.max(0, Math.min(255, b));
+
+  return { r, g, b };
+}
+
+// Floyd-Steinberg dithering
+function applyDithering(imageData, width, height, palette, ditherAmount) {
+  if (ditherAmount === 0) return;
+
+  const data = imageData.data;
+  const strength = Math.abs(ditherAmount) / 10; // 0 to 1
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = (y * width + x) * 4;
+      const oldR = data[idx];
+      const oldG = data[idx + 1];
+      const oldB = data[idx + 2];
+
+      const closest = findClosestColor(oldR, oldG, oldB, palette);
+      data[idx] = closest.r;
+      data[idx + 1] = closest.g;
+      data[idx + 2] = closest.b;
+
+      // Calculate error
+      const errR = (oldR - closest.r) * strength;
+      const errG = (oldG - closest.g) * strength;
+      const errB = (oldB - closest.b) * strength;
+
+      // Distribute error to neighboring pixels
+      const distributeError = (dx, dy, factor) => {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+          const nidx = (ny * width + nx) * 4;
+          data[nidx] = Math.max(0, Math.min(255, data[nidx] + errR * factor));
+          data[nidx + 1] = Math.max(0, Math.min(255, data[nidx + 1] + errG * factor));
+          data[nidx + 2] = Math.max(0, Math.min(255, data[nidx + 2] + errB * factor));
+        }
+      };
+
+      distributeError(1, 0, 7/16);
+      distributeError(-1, 1, 3/16);
+      distributeError(0, 1, 5/16);
+      distributeError(1, 1, 1/16);
+    }
+  }
+}
+
 // Find closest color in palette
 function findClosestColor(r, g, b, palette) {
   let minDistance = Infinity;
@@ -235,7 +316,7 @@ function findClosestColor(r, g, b, palette) {
 }
 
 // Process image: resize and apply palette
-export async function processImage(imageFile, targetWidth, targetHeight, palette) {
+export async function processImage(imageFile, targetWidth, targetHeight, palette, adjustments = { exposure: 0, contrast: 0, chrominance: 0, dithering: 0 }) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const reader = new FileReader();
@@ -264,15 +345,28 @@ export async function processImage(imageFile, targetWidth, targetHeight, palette
           // Draw resized image
           lowResCtx.drawImage(img, 0, 0, width, height);
 
-          // Get image data and apply palette
+          // Get image data and apply adjustments
           const imageData = lowResCtx.getImageData(0, 0, width, height);
           const data = imageData.data;
 
+          // Apply color adjustments first
           for (let i = 0; i < data.length; i += 4) {
-            const closest = findClosestColor(data[i], data[i + 1], data[i + 2], palette);
-            data[i] = closest.r;
-            data[i + 1] = closest.g;
-            data[i + 2] = closest.b;
+            const adjusted = applyAdjustments(data[i], data[i + 1], data[i + 2], adjustments);
+            data[i] = adjusted.r;
+            data[i + 1] = adjusted.g;
+            data[i + 2] = adjusted.b;
+          }
+
+          // Apply dithering if enabled, otherwise apply palette directly
+          if (adjustments.dithering !== 0) {
+            applyDithering(imageData, width, height, palette, adjustments.dithering);
+          } else {
+            for (let i = 0; i < data.length; i += 4) {
+              const closest = findClosestColor(data[i], data[i + 1], data[i + 2], palette);
+              data[i] = closest.r;
+              data[i + 1] = closest.g;
+              data[i + 2] = closest.b;
+            }
           }
 
           lowResCtx.putImageData(imageData, 0, 0);
